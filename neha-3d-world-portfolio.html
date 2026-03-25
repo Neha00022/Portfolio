@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Neha Rajput — Into The Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{
+  width:100%;overflow-x:hidden;
+  scroll-behavior:smooth;
+  -webkit-text-size-adjust:100%;
+}
+body{
+  width:100%;overflow-x:hidden;
+  background:#000;
+  font-family:'Rajdhani',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{cursor:none}
+
+/* ── Canvas fills screen ─────────────────── */
+#c{
+  position:fixed;top:0;left:0;
+  width:100%;height:100%;
+  z-index:1;
+}
+
+/* ── Scroll container ────────────────────── */
+#scroll-container{
+  position:relative;
+  height:900vh; /* total scroll length */
+  z-index:0;
+}
+
+/* ── Custom cursor ───────────────────────── */
+#cur{
+  position:fixed;z-index:9999;pointer-events:none;
+  width:18px;height:18px;border-radius:50%;
+  border:1.5px solid rgba(200,140,255,1);
+  mix-blend-mode:screen;
+  transition:transform .08s ease,width .2s,height .2s;
+  box-shadow:0 0 18px rgba(200,140,255,.8),0 0 35px rgba(200,140,255,.3);
+}
+#cur.hover{width:28px;height:28px;border-color:rgba(100,220,255,1)}
+#cur-trail{
+  position:fixed;z-index:9998;pointer-events:none;
+  width:7px;height:7px;border-radius:50%;
+  background:rgba(120,230,255,0.9);
+  box-shadow:0 0 12px rgba(120,230,255,0.9),0 0 25px rgba(120,230,255,.4);
+  mix-blend-mode:screen;
+}
+@media(hover:none){#cur,#cur-trail{display:none}}
+
+/* ── UI Overlay ──────────────────────────── */
+#ui{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  z-index:100;pointer-events:none;
+  font-family:'Rajdhani',sans-serif;
+}
+
+/* Name / logo */
+#logo{
+  position:absolute;top:1.5rem;left:2rem;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.7rem;letter-spacing:.18em;
+  color:#fff;
+  text-shadow:0 0 25px rgba(200,140,255,.9),0 0 50px rgba(200,140,255,.4);
+  opacity:0;
+  transition:opacity 1s ease;
+  z-index:200;
+}
+
+/* Scroll progress bar */
+#progress-bar{
+  position:absolute;right:2rem;top:50%;transform:translateY(-50%);
+  width:2px;height:60vh;
+  background:rgba(255,255,255,.06);
+  border-radius:2px;
+}
+#progress-fill{
+  width:100%;height:0%;
+  background:linear-gradient(180deg,#c47aff,#4af0ff,#4affa0);
+  border-radius:2px;
+  box-shadow:0 0 12px rgba(200,140,255,.7),0 0 25px rgba(200,140,255,.3);
+  transition:height .08s linear;
+}
+.prog-dot{
+  position:absolute;right:-4px;
+  width:10px;height:10px;border-radius:50%;
+  background:#fff;
+  border:1px solid rgba(180,120,255,.6);
+  box-shadow:0 0 8px rgba(180,120,255,.8);
+  transform:translateY(-50%);
+  opacity:0;
+  transition:opacity .4s;
+}
+
+/* Section labels */
+.section-label{
+  position:absolute;right:5rem;
+  font-family:'Share Tech Mono',monospace;
+  font-size:.62rem;letter-spacing:.18em;
+  color:rgba(255,255,255,.35);
+  text-transform:uppercase;
+  opacity:0;transition:opacity .4s;
+  transform:translateY(-50%);
+}
+
+/* ── Text panels ─────────────────────────── */
+.panel{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(40px) scale(0.97);
+  transition:opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);
+  will-change:transform,opacity;
+}
+.panel.show{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.panel.hide{opacity:0;transform:translateY(-30px) scale(0.98)}
+
+#panel-intro{
+  top:50%;left:8%;transform:translateY(-50%);
+  max-width:550px;
+}
+#panel-intro.show{transform:translateY(-50%)}
+
+.p-eyebrow{
+  font-family:'Share Tech Mono',monospace;
+  font-size:.72rem;
+  background:linear-gradient(90deg,#4af0ff,#c47aff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  letter-spacing:.22em;text-transform:uppercase;
+  margin-bottom:1rem;
+}
+.p-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3.2rem,8vw,7rem);
+  line-height:.92;letter-spacing:.03em;
+  color:#fff;
+  text-shadow:0 0 50px rgba(200,140,255,.6),0 0 100px rgba(200,140,255,.2);
+  margin-bottom:1rem;
+}
+.p-title .accent{
+  color:transparent;
+  -webkit-text-stroke:2px rgba(200,140,255,1);
+  text-shadow:none;
+  filter:drop-shadow(0 0 15px rgba(200,140,255,.8));
+}
+.p-sub{
+  font-size:1.1rem;font-weight:400;
+  color:rgba(255,255,255,.55);
+  line-height:1.7;max-width:420px;
+}
+.p-sub strong{color:rgba(255,255,255,.85)}
+
+/* scroll hint */
+#scroll-hint{
+  position:absolute;bottom:2.5rem;left:50%;
+  transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:.6rem;
+  opacity:1;transition:opacity .6s;
+}
+#scroll-hint.gone{opacity:0}
+.sh-text{
+  font-family:'Share Tech Mono',monospace;
+  font-size:.6rem;letter-spacing:.25em;
+  color:rgba(255,255,255,.3);text-transform:uppercase;
+}
+.sh-line{
+  width:1px;height:50px;
+  background:linear-gradient(180deg,rgba(180,120,255,.5),transparent);
+  animation:shLine 1.8s ease-in-out infinite;
+}
+@keyframes shLine{0%{height:0;opacity:1}100%{height:50px;opacity:0}}
+
+/* Mid panels — story sections */
+#panel-story{
+  top:50%;left:8%;
+  transform:translateY(-50%);
+  max-width:480px;
+}
+#panel-story.show{transform:translateY(-50%)}
+
+#panel-exp{
+  top:50%;right:8%;
+  transform:translateY(-50%);
+  max-width:460px;text-align:right;
+}
+#panel-exp.show{transform:translateY(-50%)}
+
+#panel-projects{
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  max-width:800px;width:90vw;
+  text-align:center;
+}
+#panel-projects.show{transform:translate(-50%,-50%)}
+
+#panel-skills{
+  top:50%;left:8%;
+  transform:translateY(-50%);
+  max-width:500px;
+}
+#panel-skills.show{transform:translateY(-50%)}
+
+#panel-contact{
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;max-width:600px;
+}
+#panel-contact.show{transform:translate(-50%,-50%)}
+
+/* Glass card */
+.glass{
+  background:rgba(5,2,18,.55);
+  border:1px solid rgba(200,140,255,.2);
+  border-radius:16px;
+  padding:1.6rem 2rem;
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  box-shadow:0 0 60px rgba(200,140,255,.1),
+             0 20px 60px rgba(0,0,0,.5),
+             inset 0 0 40px rgba(0,0,0,.3);
+  position:relative;overflow:hidden;
+}
+.glass::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,140,255,.7),rgba(100,230,255,.6),transparent);
+}
+.glass::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(100,230,255,.2),transparent);
+}
+
+/* Experience items */
+.exp-item{
+  display:flex;align-items:flex-start;gap:.8rem;
+  padding:.7rem 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.exp-item:last-child{border:none}
+.exp-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:.35rem;
+  box-shadow:0 0 8px currentColor;
+}
+.exp-label{font-size:.9rem;font-weight:600;color:rgba(255,255,255,.85)}
+.exp-val{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:rgba(255,255,255,.4);margin-top:.2rem}
+
+/* Project grid */
+.proj-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:1rem;margin-top:1.2rem;
+}
+.proj-card{
+  background:rgba(0,0,0,.6);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:1.1rem 1.4rem;
+  position:relative;overflow:hidden;
+  transition:border-color .3s,transform .3s,box-shadow .3s;
+  cursor:pointer;pointer-events:auto;
+}
+.proj-card:hover{
+  border-color:rgba(180,120,255,.4);
+  transform:translateY(-3px);
+  box-shadow:0 12px 40px rgba(180,120,255,.15);
+}
+.proj-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--c,rgba(180,120,255,.5)),transparent);
+}
+.proj-emoji{font-size:1.8rem;margin-bottom:.4rem}
+.proj-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.1rem;letter-spacing:.06em;
+  color:#fff;margin-bottom:.3rem;
+}
+.proj-desc{font-size:.82rem;color:rgba(255,255,255,.45);line-height:1.5}
+.proj-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.6rem}
+.proj-tag{
+  font-family:'Share Tech Mono',monospace;font-size:.58rem;
+  padding:.2rem .5rem;border-radius:4px;
+  background:rgba(100,220,255,.08);
+  border:1px solid rgba(100,220,255,.15);
+  color:rgba(100,220,255,.7);
+}
+
+/* Skill pills */
+.skills-wrap{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem}
+.skill-pill{
+  font-family:'Share Tech Mono',monospace;font-size:.7rem;
+  padding:.5rem 1.1rem;border-radius:100px;
+  background:linear-gradient(135deg,rgba(200,140,255,.1),rgba(100,230,255,.05));
+  border:1px solid rgba(200,140,255,.3);
+  color:rgba(220,170,255,.95);
+  letter-spacing:.07em;
+  transition:all .25s cubic-bezier(.16,1,.3,1);
+  cursor:default;
+}
+.skill-pill:hover{
+  background:linear-gradient(135deg,rgba(200,140,255,.25),rgba(100,230,255,.15));
+  box-shadow:0 0 20px rgba(200,140,255,.4),0 0 40px rgba(200,140,255,.15);
+  transform:translateY(-3px) scale(1.05);
+  border-color:rgba(200,140,255,.6);
+  color:#fff;
+}
+
+/* Contact buttons */
+.contact-grid{display:flex;flex-direction:column;gap:.7rem;margin-top:1.4rem;align-items:center}
+.cta-btn{
+  display:inline-flex;align-items:center;gap:.8rem;
+  padding:.9rem 2rem;border-radius:10px;
+  font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;
+  text-decoration:none;letter-spacing:.08em;
+  transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .3s;
+  pointer-events:auto;
+  min-width:280px;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.cta-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.08),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.cta-btn:hover::after{opacity:1}
+.cta-btn:hover{transform:translateY(-3px)}
+.cta-primary{
+  background:linear-gradient(135deg,rgba(200,140,255,.3),rgba(100,220,255,.2));
+  border:1px solid rgba(200,140,255,.6);
+  color:#fff;
+  box-shadow:0 0 30px rgba(200,140,255,.25),0 8px 32px rgba(0,0,0,.3);
+}
+.cta-primary:hover{box-shadow:0 0 50px rgba(200,140,255,.5),0 12px 40px rgba(0,0,0,.4)}
+.cta-secondary{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.75);
+}
+.cta-secondary:hover{border-color:rgba(200,140,255,.4);color:#fff;box-shadow:0 0 20px rgba(200,140,255,.15)}
+
+/* Live sites */
+.live-sites{display:flex;gap:.8rem;margin-top:1rem;justify-content:center;flex-wrap:wrap}
+.live-link{
+  font-family:'Share Tech Mono',monospace;font-size:.72rem;
+  padding:.45rem 1.1rem;border-radius:6px;
+  text-decoration:none;
+  border:1px solid rgba(100,220,255,.25);
+  color:rgba(100,220,255,.8);
+  background:rgba(100,220,255,.06);
+  transition:background .3s,border-color .3s,transform .2s;
+  pointer-events:auto;
+}
+.live-link:hover{background:rgba(100,220,255,.12);border-color:rgba(100,220,255,.5);transform:translateY(-2px)}
+
+/* Loading screen */
+#loader{
+  position:fixed;inset:0;z-index:2000;
+  background:radial-gradient(ellipse at 50% 40%,#0d0520 0%,#000 70%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;
+  transition:opacity 1s ease;
+}
+#loader.done{opacity:0;pointer-events:none}
+.loader-name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.8rem;letter-spacing:.25em;
+  background:linear-gradient(90deg,#c47aff,#4af0ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 20px rgba(200,140,255,.5));
+}
+.loader-bar-wrap{width:200px;height:1px;background:rgba(255,255,255,.08)}
+.loader-bar{height:100%;width:0%;background:linear-gradient(90deg,#c47aff,#4af0ff,#4affa0);transition:width .04s linear;box-shadow:0 0 10px rgba(200,140,255,.8)}
+.loader-pct{
+  font-family:'Share Tech Mono',monospace;font-size:.65rem;
+  letter-spacing:.22em;color:rgba(255,255,255,.4);
+}
+
+/* Film grain overlay */
+#grain{
+  position:fixed;inset:0;z-index:200;pointer-events:none;
+  opacity:.028;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode:overlay;
+}
+
+/* Vignette */
+#vignette{
+  position:fixed;inset:0;z-index:50;pointer-events:none;
+  background:radial-gradient(ellipse 100% 100% at 50% 50%,transparent 40%,rgba(0,0,0,.75) 100%);
+}
+
+/* Ambient color shift */
+#ambient{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  opacity:0;transition:background 2s ease,opacity 1s ease;
+}
+
+/* ── Mobile Nav ──────────────────────────── */
+#mobile-nav{
+  display:none;
+  position:fixed;top:0;left:0;right:0;
+  z-index:500;
+  padding:1rem 1.4rem;
+  background:linear-gradient(180deg,rgba(0,0,0,.9) 0%,transparent 100%);
+  justify-content:space-between;align-items:center;
+  pointer-events:auto;
+}
+#mobile-nav-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.5rem;letter-spacing:.18em;
+  background:linear-gradient(90deg,#c47aff,#4af0ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+#hamburger{
+  width:28px;height:20px;position:relative;
+  display:flex;flex-direction:column;justify-content:space-between;
+  cursor:pointer;z-index:600;
+  background:none;border:none;padding:0;
+}
+#hamburger span{
+  display:block;width:100%;height:2px;
+  background:linear-gradient(90deg,#c47aff,#4af0ff);
+  border-radius:2px;
+  transition:transform .35s cubic-bezier(.16,1,.3,1),opacity .25s;
+  transform-origin:center;
+}
+#hamburger.open span:nth-child(1){transform:translateY(9px) rotate(45deg)}
+#hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+#hamburger.open span:nth-child(3){transform:translateY(-9px) rotate(-45deg)}
+#mobile-menu{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(3,1,15,.97);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2.5rem;
+  opacity:0;pointer-events:none;
+  transition:opacity .4s ease;
+  backdrop-filter:blur(30px);
+  -webkit-backdrop-filter:blur(30px);
+}
+#mobile-menu.open{opacity:1;pointer-events:auto}
+.mob-link{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:3rem;letter-spacing:.12em;
+  color:rgba(255,255,255,.7);
+  text-decoration:none;
+  transition:color .2s,text-shadow .2s;
+  cursor:pointer;
+}
+.mob-link:hover,.mob-link:active{
+  color:#fff;
+  text-shadow:0 0 30px rgba(200,140,255,.8);
+}
+
+/* ── Responsive ──────────────────────────── */
+@media(max-width:768px){
+  body{cursor:auto}
+  #mobile-nav{display:flex}
+  #logo{display:none}
+  #progress-bar{display:none}
+  .section-label{display:none}
+  .p-title{font-size:clamp(2.4rem,11vw,4.5rem)}
+
+  #panel-intro{
+    top:auto;bottom:12%;left:4%;right:4%;
+    max-width:none;transform:none;
+  }
+  #panel-intro.show{transform:none}
+
+  #panel-story{
+    top:50%;left:4%;right:4%;
+    max-width:none;transform:translate(0,-50%);
+  }
+  #panel-story.show{transform:translate(0,-50%)}
+
+  #panel-exp{
+    top:50%;left:4%;right:4%;
+    max-width:none;text-align:left;
+    transform:translate(0,-50%);
+  }
+  #panel-exp.show{transform:translate(0,-50%)}
+
+  /* Projects panel — full-width horizontal swipe container */
+  #panel-projects{
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    width:100vw;
+    max-width:100vw;
+    padding:0;
+  }
+  #panel-projects.show{transform:translate(-50%,-50%)}
+  #panel-projects .glass{
+    border-radius:0;
+    border-left:none;border-right:none;
+    padding:1.2rem 1.2rem .8rem;
+    overflow:hidden;
+  }
+
+  /* Horizontal scroll strip */
+  .proj-grid{
+    display:flex;
+    flex-direction:row;
+    flex-wrap:nowrap;
+    gap:.8rem;
+    margin-top:1rem;
+    overflow:hidden;              /* JS controls transform */
+    touch-action:none;            /* we handle touch manually */
+    padding-bottom:.4rem;
+    will-change:transform;
+  }
+  .proj-card{
+    flex:0 0 78vw;
+    max-width:320px;
+    scroll-snap-align:center;
+    border-radius:14px;
+    padding:1.1rem 1.2rem;
+    transform:translateZ(0);
+  }
+
+  /* Swipe hint dots */
+  #proj-dots{
+    display:flex;justify-content:center;gap:.5rem;
+    margin-top:.8rem;
+  }
+  .proj-dot-ind{
+    width:6px;height:6px;border-radius:50%;
+    background:rgba(255,255,255,.2);
+    transition:background .3s,transform .3s;
+  }
+  .proj-dot-ind.active{
+    background:rgba(196,122,255,.9);
+    transform:scale(1.4);
+  }
+
+  /* Swipe hint label */
+  #swipe-hint{
+    font-family:'Share Tech Mono',monospace;
+    font-size:.55rem;letter-spacing:.18em;
+    color:rgba(255,255,255,.3);
+    text-align:center;margin-top:.5rem;
+    text-transform:uppercase;
+    transition:opacity .6s;
+  }
+  #swipe-hint.gone{opacity:0}
+
+  #panel-skills{
+    top:50%;left:4%;right:4%;
+    max-width:none;transform:translate(0,-50%);
+  }
+  #panel-skills.show{transform:translate(0,-50%)}
+
+  #panel-contact{
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    width:92vw;
+  }
+  #panel-contact.show{transform:translate(-50%,-50%)}
+
+  .glass{padding:1.2rem 1.4rem}
+  .cta-btn{min-width:240px;font-size:.93rem;padding:.8rem 1.4rem}
+  .contact-grid>div{flex-direction:column;width:100%;align-items:center}
+  .contact-grid>div .cta-btn{min-width:240px}
+  #scroll-hint{bottom:1.8rem}
+
+  /* Mobile perf: reduce grain opacity */
+  #grain{opacity:.015}
+}
+
+@media(max-width:480px){
+  .p-title{font-size:clamp(2rem,14vw,3.5rem)}
+  .proj-card{flex:0 0 86vw;padding:.9rem 1rem}
+  .glass{padding:1rem 1.1rem;border-radius:12px}
+  .cta-btn{min-width:200px}
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile Nav -->
+<div id="mobile-nav">
+  <div id="mobile-nav-logo">NR</div>
+  <button id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+<div id="mobile-menu">
+  <div class="mob-link" data-section="panel-intro">Intro</div>
+  <div class="mob-link" data-section="panel-story">Story</div>
+  <div class="mob-link" data-section="panel-exp">Experience</div>
+  <div class="mob-link" data-section="panel-projects">Projects</div>
+  <div class="mob-link" data-section="panel-skills">Skills</div>
+  <div class="mob-link" data-section="panel-contact">Contact</div>
+</div>
+
+<!-- Loading screen -->
+<div id="loader">
+  <div class="loader-name">NEHA RAJPUT</div>
+  <div class="loader-bar-wrap"><div class="loader-bar" id="loader-bar"></div></div>
+  <div class="loader-pct" id="loader-pct">0%</div>
+</div>
+
+<!-- Film grain -->
+<div id="grain"></div>
+<!-- Vignette -->
+<div id="vignette"></div>
+<!-- Ambient color -->
+<div id="ambient"></div>
+
+<!-- Custom cursor -->
+<div id="cur"></div>
+<div id="cur-trail"></div>
+
+<!-- WebGL Canvas -->
+<canvas id="c"></canvas>
+
+<!-- Scroll container (drives scroll height) -->
+<div id="scroll-container"></div>
+
+<!-- UI Overlay -->
+<div id="ui">
+  <div id="logo">NR</div>
+
+  <!-- Scroll progress rail -->
+  <div id="progress-bar">
+    <div id="progress-fill"></div>
+    <div class="prog-dot" id="prog-dot"></div>
+  </div>
+
+  <!-- Section labels -->
+  <div class="section-label" id="lbl-intro"   style="top:20%">01 / INTRO</div>
+  <div class="section-label" id="lbl-story"   style="top:35%">02 / STORY</div>
+  <div class="section-label" id="lbl-exp"     style="top:50%">03 / EXPERIENCE</div>
+  <div class="section-label" id="lbl-proj"    style="top:65%">04 / PROJECTS</div>
+  <div class="section-label" id="lbl-skills"  style="top:80%">05 / SKILLS</div>
+
+  <!-- Scroll hint -->
+  <div id="scroll-hint">
+    <div class="sh-text">scroll</div>
+    <div class="sh-line"></div>
+  </div>
+
+  <!-- ── PANEL 1 — INTRO ─────────────────── -->
+  <div class="panel" id="panel-intro">
+    <div class="p-eyebrow">// web &amp; application developer</div>
+    <div class="p-title">
+      NEHA<br>
+      <span class="accent">RAJPUT</span>
+    </div>
+    <p class="p-sub">
+      I don't just write code.<br>
+      <strong>I build real-world digital experiences</strong> — shipped to production, used by real people, right now.
+    </p>
+  </div>
+
+  <!-- ── PANEL 2 — STORY ────────────────── -->
+  <div class="panel" id="panel-story">
+    <div class="glass">
+      <div class="p-eyebrow">// origin</div>
+      <div class="p-title" style="font-size:clamp(2rem,5vw,3.5rem);margin-bottom:.8rem">It all<br>started<br>here.</div>
+      <p class="p-sub" style="font-size:.95rem">
+        A <strong>BCA student</strong> with a terminal open and a curiosity that couldn't be contained.<br><br>
+        I didn't wait to graduate. I started building — real platforms, real APIs, real deployments — while still learning.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── PANEL 3 — EXPERIENCE ───────────── -->
+  <div class="panel" id="panel-exp">
+    <div class="glass">
+      <div class="p-eyebrow" style="text-align:right">// experience</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.06em;color:#fff;margin-bottom:.2rem">JANADESH EXPRESS</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.65rem;color:rgba(100,220,255,.6);margin-bottom:1.2rem;letter-spacing:.1em">WEB &amp; APPLICATION DEVELOPER · DEHRADUN · JUNE 2025 →</div>
+      <div class="exp-item">
+        <div class="exp-dot" style="color:#4ade80;background:#4ade80"></div>
+        <div><div class="exp-label">⚡ 35% Performance Boost</div><div class="exp-val">Code splitting, CDN, architectural optimization</div></div>
+      </div>
+      <div class="exp-item">
+        <div class="exp-dot" style="color:#60a5fa;background:#60a5fa"></div>
+        <div><div class="exp-label">☁️ AWS S3 + APIs</div><div class="exp-val">Cloud storage, third-party integrations</div></div>
+      </div>
+      <div class="exp-item">
+        <div class="exp-dot" style="color:#c084fc;background:#c084fc"></div>
+        <div><div class="exp-label">📱 Play Store Deployments</div><div class="exp-val">Live Android apps, actively maintained</div></div>
+      </div>
+      <div class="exp-item">
+        <div class="exp-dot" style="color:#f59e0b;background:#f59e0b"></div>
+        <div><div class="exp-label">🏗️ Scalable Platforms</div><div class="exp-val">Full-stack systems at production scale</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PANEL 4 — PROJECTS ─────────────── -->
+  <div class="panel" id="panel-projects">
+    <div class="glass">
+      <div class="p-eyebrow" style="text-align:center">// shipped projects</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,4vw,2.5rem);letter-spacing:.06em;color:#fff;text-align:center">Things I Actually Built</div>
+      <div class="proj-grid" id="proj-grid">
+        <a href="mailto:rajputyatika2@gmail.com" class="proj-card" style="--c:rgba(239,68,68,.6)">
+          <div class="proj-emoji">▶️</div>
+          <div class="proj-name">YouTube Clone</div>
+          <div class="proj-desc">Full-stack video platform with upload, auth, comments & AWS S3</div>
+          <div class="proj-tags"><span class="proj-tag">React</span><span class="proj-tag">Node</span><span class="proj-tag">MongoDB</span><span class="proj-tag">AWS</span></div>
+        </a>
+        <a href="https://play.google.com/store/search?q=cgd+fashion&c=apps" target="_blank" class="proj-card" style="--c:rgba(236,72,153,.6)">
+          <div class="proj-emoji">👗</div>
+          <div class="proj-name">CGD Fashion</div>
+          <div class="proj-desc">Live fashion e-commerce app on Play Store — real users daily</div>
+          <div class="proj-tags"><span class="proj-tag">React Native</span><span class="proj-tag">Firebase</span></div>
+        </a>
+        <a href="https://play.google.com/store/search?q=silaiwala&c=apps" target="_blank" class="proj-card" style="--c:rgba(245,158,11,.6)">
+          <div class="proj-emoji">🧵</div>
+          <div class="proj-name">Silaiwala</div>
+          <div class="proj-desc">Live tailoring platform with booking, tracking & push notifications</div>
+          <div class="proj-tags"><span class="proj-tag">React</span><span class="proj-tag">Firebase</span><span class="proj-tag">FCM</span></div>
+        </a>
+        <a href="https://play.google.com/store/search?q=dhulaiwala&c=apps" target="_blank" class="proj-card" style="--c:rgba(34,211,238,.6)">
+          <div class="proj-emoji">🧺</div>
+          <div class="proj-name">Dhulaiwala</div>
+          <div class="proj-desc">On-demand laundry with real-time maps & Razorpay payments</div>
+          <div class="proj-tags"><span class="proj-tag">React</span><span class="proj-tag">Maps API</span><span class="proj-tag">Razorpay</span></div>
+        </a>
+      </div>
+      <!-- Mobile swipe indicators -->
+      <div id="proj-dots"></div>
+      <div id="swipe-hint">← swipe projects →</div>
+    </div>
+  </div>
+
+  <!-- ── PANEL 5 — SKILLS ───────────────── -->
+  <div class="panel" id="panel-skills">
+    <div class="glass">
+      <div class="p-eyebrow">// tech stack</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3rem);letter-spacing:.06em;color:#fff;margin-bottom:.4rem">Power-Ups<br>Collected</div>
+      <div class="skills-wrap">
+        <span class="skill-pill">React.js</span>
+        <span class="skill-pill">Node.js</span>
+        <span class="skill-pill">Firebase</span>
+        <span class="skill-pill">AWS S3</span>
+        <span class="skill-pill">Java</span>
+        <span class="skill-pill">MongoDB</span>
+        <span class="skill-pill">React Native</span>
+        <span class="skill-pill">Cyber Security</span>
+        <span class="skill-pill">Prompt Engineering</span>
+        <span class="skill-pill">REST APIs</span>
+        <span class="skill-pill">Tailwind CSS</span>
+        <span class="skill-pill">Git</span>
+      </div>
+      <div class="live-sites" style="margin-top:1.4rem;justify-content:flex-start">
+        <a href="https://sanatanyuvavahini.com" target="_blank" class="live-link">↗ sanatanyuvavahini.com</a>
+        <a href="https://namami.org.in" target="_blank" class="live-link">↗ namami.org.in</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PANEL 6 — CONTACT ──────────────── -->
+  <div class="panel" id="panel-contact">
+    <div class="p-eyebrow" style="text-align:center">// let's build together</div>
+    <div class="p-title" style="text-align:center;font-size:clamp(3rem,9vw,7rem)">
+      WHAT'S<br><span class="accent">NEXT?</span>
+    </div>
+    <p class="p-sub" style="text-align:center;margin:0 auto 0 auto">
+      This is just the beginning. Let's create something that matters.
+    </p>
+    <div class="contact-grid">
+      <a href="tel:+917818023309" class="cta-btn cta-primary">📞 &nbsp;+91 78180 23309</a>
+      <a href="mailto:rajputyatika2@gmail.com" class="cta-btn cta-primary">✉️ &nbsp;rajputyatika2@gmail.com</a>
+      <div style="display:flex;gap:.8rem;margin-top:.2rem">
+        <a href="https://github.com/neharajput" target="_blank" rel="noreferrer" class="cta-btn cta-secondary" style="min-width:130px">GitHub ↗</a>
+        <a href="https://linkedin.com/in/neharajput" target="_blank" rel="noreferrer" class="cta-btn cta-secondary" style="min-width:130px">LinkedIn ↗</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /ui -->
+
+<script type="module">
+// ══════════════════════════════════════════════
+// THREE.JS INLINE (minimal subset via CDN)
+// ══════════════════════════════════════════════
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.166.0/build/three.module.js';
+
+// ══════════════════════════════════════════════
+// SCENE SETUP
+// ══════════════════════════════════════════════
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({
+  canvas, antialias: true, alpha: false,
+  powerPreference: 'high-performance',
+});
+const isMobile = /Mobi|Android|iPhone|iPad|iPod|Touch/i.test(navigator.userAgent) || (window.innerWidth <= 768 && 'ontouchstart' in window);
+renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 1.2) : Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+const scene = new THREE.Scene();
+// Deep night-sky: dark navy at horizon, near-black at zenith
+scene.background = new THREE.Color(0x04060f);
+scene.fog = new THREE.FogExp2(0x060914, 0.014);
+
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 500);
+camera.position.set(0, 2, 0);
+
+// ══════════════════════════════════════════════
+// CAMERA PATH — Catmull-Rom spline through 3D world
+// ══════════════════════════════════════════════
+const PATH_POINTS = [
+  new THREE.Vector3(0,   2,   0),      // Start — hero
+  new THREE.Vector3(-8,  4,  -40),     // Curve left-up — story
+  new THREE.Vector3(12,  1,  -80),     // Swing right — experience
+  new THREE.Vector3(-6,  6,  -130),    // Rise + left — projects
+  new THREE.Vector3(4,   0.5,-175),    // Dive down — skills
+  new THREE.Vector3(0,   3,  -220),    // Final — contact
+];
+
+const cameraPath = new THREE.CatmullRomCurve3(PATH_POINTS, false, 'catmullrom', 0.5);
+
+// Look-at path (slightly ahead)
+const LOOKAT_POINTS = PATH_POINTS.map((p, i) => {
+  const next = PATH_POINTS[Math.min(i + 1, PATH_POINTS.length - 1)];
+  return new THREE.Vector3(
+    (p.x + next.x) / 2,
+    (p.y + next.y) / 2 - 0.5,
+    p.z - 20
+  );
+});
+const lookatPath = new THREE.CatmullRomCurve3(LOOKAT_POINTS, false, 'catmullrom', 0.5);
+
+// ══════════════════════════════════════════════
+// WORLD BUILDING
+// ══════════════════════════════════════════════
+
+// — Ground — wet asphalt, dark grey with slight blue sheen —
+const groundGeo = new THREE.PlaneGeometry(300, 500, 1, 1);
+const groundMat = new THREE.MeshStandardMaterial({
+  color: 0x0c0e12,   // dark wet asphalt
+  roughness: 0.25,   // slightly reflective when wet
+  metalness: 0.55,
+});
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.set(0, -1, -110);
+scene.add(ground);
+
+// — Road markings (dashed centre lines) —
+for (let z = -5; z > -230; z -= 12) {
+  const dashGeo = new THREE.PlaneGeometry(0.25, 6);
+  const dashMat = new THREE.MeshBasicMaterial({ color: 0xe8d080, transparent: true, opacity: 0.55 });
+  const d1 = new THREE.Mesh(dashGeo, dashMat);
+  d1.rotation.x = -Math.PI / 2;
+  d1.position.set(-1.5, -0.97, z);
+  scene.add(d1);
+  const d2 = d1.clone();
+  d2.position.set(1.5, -0.97, z);
+  scene.add(d2);
+}
+
+// — Sidewalk strips —
+const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x1a1c20, roughness: 0.9, metalness: 0.05 });
+for (const sx of [-8, 8]) {
+  const sg = new THREE.PlaneGeometry(4, 500);
+  const sm = new THREE.Mesh(sg, sidewalkMat);
+  sm.rotation.x = -Math.PI / 2;
+  sm.position.set(sx, -0.99, -110);
+  scene.add(sm);
+}
+
+// — Subtle grid overlay for depth perception —
+const gridHelper = new THREE.GridHelper(400, 80, 0x1c2030, 0x111520);
+gridHelper.position.set(0, -0.96, -110);
+gridHelper.material.opacity = 0.35;
+gridHelper.material.transparent = true;
+scene.add(gridHelper);
+
+// — Wet road reflection pools (emissive planes) —
+function makeReflection(x, z, w, d, color) {
+  const rg = new THREE.PlaneGeometry(w, d);
+  const rm = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.12, depthWrite: false });
+  const r = new THREE.Mesh(rg, rm);
+  r.rotation.x = -Math.PI / 2;
+  r.position.set(x, -0.95, z);
+  scene.add(r);
+}
+for (let z = -20; z > -220; z -= 35) {
+  makeReflection(-5, z, 6, 8, 0xf0c060);  // sodium lamp reflection
+  makeReflection(5, z-18, 6, 8, 0x8090ff); // neon sign reflection
+}
+
+// ══════════════════════════════════════════════
+// REALISTIC BUILDING SYSTEM
+// ══════════════════════════════════════════════
+
+// Realistic building face colours: dark concrete, weathered stone, glass-curtain
+const buildingFaceColors = [
+  0x1a1c22,  // dark concrete grey
+  0x161920,  // dark slate
+  0x1c1a18,  // warm concrete (brownish grey)
+  0x13151b,  // near-black glass tower
+  0x1e1e24,  // industrial grey
+  0x181620,  // concrete with purple tint (night lighting)
+];
+
+// Window colours: mostly warm (office/apartment lights) + rare neon accents
+const warmWindowColors  = [0xffe5a0, 0xffd070, 0xffc050, 0xfff0c0, 0xe8c88a]; // warm white/amber
+const coolWindowColors  = [0xc8e0ff, 0xa0c4ff, 0xd0e8ff];                      // cool white/blue (offices)
+const neonAccentColors  = [0xb478ff, 0x64dcff, 0x4ade80, 0xf472b6];            // rare neon
+
+function randomWindowColor() {
+  const r = Math.random();
+  if (r < 0.55) return warmWindowColors[Math.floor(Math.random() * warmWindowColors.length)];
+  if (r < 0.85) return coolWindowColors[Math.floor(Math.random() * coolWindowColors.length)];
+  return neonAccentColors[Math.floor(Math.random() * neonAccentColors.length)];
+}
+
+function makeBuilding(x, z, w, h, d, colorIdx) {
+  const faceColor = buildingFaceColors[colorIdx % buildingFaceColors.length];
+
+  // Slightly randomise the face brightness for variety
+  const brightness = 0.85 + Math.random() * 0.3;
+  const col = new THREE.Color(faceColor);
+  col.multiplyScalar(brightness);
+
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const mat = new THREE.MeshStandardMaterial({
+    color: col,
+    roughness: 0.88,
+    metalness: 0.18,
+    // Subtle self-emission so the building isn't pitch black against sky
+    emissive: col.clone().multiplyScalar(0.06),
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, h / 2 - 1, z);
+  scene.add(mesh);
+
+  // Rooftop edge trim — subtle light outline (not neon, just architectural)
+  const edgeGeo = new THREE.EdgesGeometry(geo);
+  const edgeCol = Math.random() < 0.3
+    ? neonAccentColors[Math.floor(Math.random() * neonAccentColors.length)]
+    : 0x3a4060;  // mostly steel-blue structural edge
+  const edgeMat = new THREE.LineBasicMaterial({
+    color: edgeCol,
+    transparent: true,
+    opacity: Math.random() < 0.3 ? 0.35 : 0.08,
+  });
+  const edges = new THREE.LineSegments(edgeGeo, edgeMat);
+  edges.position.copy(mesh.position);
+  scene.add(edges);
+
+  // ── Windows on FRONT face (facing camera) ──────────────────
+  const floorHeight = 2.8;   // realistic floor-to-floor
+  const numFloors   = Math.floor((h - 2) / floorHeight);
+  const colSpacing  = 1.6;
+  const numCols     = Math.floor((w - 1) / colSpacing);
+
+  for (let f = 0; f < numFloors; f++) {
+    for (let c = 0; c < numCols; c++) {
+      // ~55% of windows lit
+      if (Math.random() > 0.55) continue;
+
+      const winW   = 0.75;
+      const winH   = 1.1;
+      const wCol   = randomWindowColor();
+      const wOpac  = Math.random() * 0.5 + 0.45;  // fairly bright
+
+      const wGeo = new THREE.PlaneGeometry(winW, winH);
+      const wMat = new THREE.MeshBasicMaterial({
+        color: wCol,
+        transparent: true,
+        opacity: wOpac,
+      });
+      const win = new THREE.Mesh(wGeo, wMat);
+      win.position.set(
+        x - w / 2 + 0.8 + c * colSpacing,
+        -1 + f * floorHeight + floorHeight * 0.6,
+        z + d / 2 + 0.02
+      );
+      scene.add(win);
+
+      // Window glow spill on building face (very subtle point light, shared per column)
+      if (c === 0 && f % 3 === 0) {
+        const wLight = new THREE.PointLight(wCol, 0.3, 5);
+        wLight.position.set(win.position.x, win.position.y, win.position.z + 1);
+        scene.add(wLight);
+      }
+    }
+  }
+
+  // ── Windows on SIDE face (right side visible from path curves) ──
+  const numColsSide = Math.floor((d - 1) / colSpacing);
+  for (let f = 0; f < numFloors; f++) {
+    for (let c = 0; c < numColsSide; c++) {
+      if (Math.random() > 0.45) continue;
+      const wCol = randomWindowColor();
+      const wGeo = new THREE.PlaneGeometry(0.75, 1.1);
+      const wMat = new THREE.MeshBasicMaterial({ color: wCol, transparent: true, opacity: Math.random() * 0.4 + 0.35 });
+      const win  = new THREE.Mesh(wGeo, wMat);
+      win.rotation.y = Math.PI / 2;
+      win.position.set(
+        x + w / 2 + 0.02,
+        -1 + f * floorHeight + floorHeight * 0.6,
+        z - d / 2 + 0.8 + c * colSpacing
+      );
+      scene.add(win);
+    }
+  }
+
+  // ── Rooftop water-tank / antenna silhouette ──────────────────
+  if (Math.random() > 0.5) {
+    const antH = Math.random() * 4 + 1;
+    const antGeo = new THREE.CylinderGeometry(0.06, 0.06, antH, 4);
+    const antMat = new THREE.MeshStandardMaterial({ color: 0x2a2a30, roughness: 1 });
+    const ant = new THREE.Mesh(antGeo, antMat);
+    ant.position.set(x + (Math.random()-0.5)*w*0.4, h - 1 + antH/2, z);
+    scene.add(ant);
+    // Blinking red aviation light
+    const blinkLight = new THREE.PointLight(0xff2020, 0.8, 6);
+    blinkLight.position.set(ant.position.x, ant.position.y + antH/2 + 0.2, ant.position.z);
+    blinkLight.userData.isBlinkLight = true;
+    blinkLight.userData.blinkPhase = Math.random() * Math.PI * 2;
+    scene.add(blinkLight);
+  }
+}
+
+// Left side buildings
+const bldgData = [
+  [-18, -20,  6, 18, 5, 0], [-25, -35,  8, 30, 6, 1], [-15, -55,  5, 22, 4, 2],
+  [-22, -75, 10, 40, 8, 3], [-18, -95,  7, 25, 5, 0], [-28,-115, 12, 50,10, 4],
+  [-16,-135,  6, 20, 5, 2], [-24,-155,  9, 35, 7, 5], [-20,-175,  7, 28, 6, 0],
+  [-26,-195, 11, 45, 9, 1], [-18,-215,  6, 22, 5, 3],
+  // Right side
+  [18, -20,  7, 25, 5, 2],  [26, -38,  9, 38, 7, 4], [20, -58,  6, 18, 5, 0],
+  [24, -78, 10, 42, 8, 1],  [18, -98,  7, 28, 5, 5], [28,-118, 12, 55,10, 3],
+  [20,-138,  8, 32, 6, 0],  [26,-158, 10, 46, 8, 2], [18,-178,  7, 24, 5, 4],
+  [24,-198, 11, 48, 9, 3],  [20,-218,  8, 30, 6, 5],
+];
+bldgData.forEach(([x, z, w, h, d, c]) => makeBuilding(x, z, w, h, d, c));
+
+// ── Street lamps (sodium orange glow) ─────────────────────────
+function makeStreetLamp(x, z) {
+  // Pole
+  const pGeo = new THREE.CylinderGeometry(0.07, 0.09, 7, 6);
+  const pMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.9 });
+  const pole = new THREE.Mesh(pGeo, pMat);
+  pole.position.set(x, 2.5, z);
+  scene.add(pole);
+  // Lamp head
+  const hGeo = new THREE.SphereGeometry(0.28, 8, 6);
+  const hMat = new THREE.MeshBasicMaterial({ color: 0xffe090 });
+  const head = new THREE.Mesh(hGeo, hMat);
+  head.position.set(x, 6.3, z);
+  scene.add(head);
+  // Warm orange point light
+  const lamp = new THREE.PointLight(0xffa830, 2.5, 22);
+  lamp.position.set(x, 6, z);
+  scene.add(lamp);
+  // Ground halo (reflection on wet road)
+  const gGeo = new THREE.CircleGeometry(3, 16);
+  const gMat = new THREE.MeshBasicMaterial({ color: 0xffb84020, transparent: true, opacity: 0.18, depthWrite: false });
+  const gHalo = new THREE.Mesh(gGeo, gMat);
+  gHalo.rotation.x = -Math.PI / 2;
+  gHalo.position.set(x, -0.93, z);
+  scene.add(gHalo);
+}
+for (let z = -15; z > -225; z -= 20) {
+  makeStreetLamp(-10, z);
+  makeStreetLamp(10, z);
+}
+
+// — Neon signs on buildings —
+function makeNeonBar(x, y, z, length, color, vertical=false) {
+  const geo = new THREE.CylinderGeometry(0.06, 0.06, length, 6);
+  const mat = new THREE.MeshStandardMaterial({
+    color,
+    emissive: new THREE.Color(color),
+    emissiveIntensity: 3,
+    roughness: 0,
+    metalness: 0,
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  if (!vertical) mesh.rotation.z = Math.PI / 2;
+  mesh.position.set(x, y, z);
+  scene.add(mesh);
+
+  // Point light at neon
+  const light = new THREE.PointLight(color, 0.8, 8);
+  light.position.copy(mesh.position);
+  scene.add(light);
+}
+
+// Neon signs — placed near rooftops of taller buildings only
+const neonPositions = [
+  [-14, 31, -35, 7, 0xb478ff], [14, 40, -55, 5, 0x64dcff],
+  [-14, 42, -78, 6, 0xff4488], [14, 57, -118, 8, 0x4af0ff],
+  [-14, 26, -135, 5, 0x4ade80],[14, 47, -158, 6, 0xb478ff],
+  [-14, 45, -195, 7, 0xfbbf24],[14, 56, -118, 9, 0x64dcff],
+];
+neonPositions.forEach(([x,y,z,l,c]) => makeNeonBar(x,y,z,l,c));
+neonPositions.forEach(([x,y,z,l,c]) => makeNeonBar(x,y+2,z,l/2,c,true));
+
+// — Flying particles (rain/fireflies) —
+const particleCount = 2000;
+const pGeo = new THREE.BufferGeometry();
+const pPos = new Float32Array(particleCount * 3);
+const pVel = new Float32Array(particleCount);
+for (let i = 0; i < particleCount; i++) {
+  pPos[i*3]   = (Math.random()-0.5)*120;
+  pPos[i*3+1] = (Math.random()-0.5)*40 + 15;
+  pPos[i*3+2] = Math.random()*-230;
+  pVel[i] = Math.random()*0.04 + 0.01;
+}
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+
+// Rain particles — white/light-grey like real rain under street lamps
+const pMat = new THREE.PointsMaterial({
+  color: 0xd0e0f0,
+  size: 0.10,
+  transparent: true,
+  opacity: 0.45,
+  depthWrite: false,
+  sizeAttenuation: true,
+});
+const particles = new THREE.Points(pGeo, pMat);
+scene.add(particles);
+
+// — Stars (background) —
+const starGeo = new THREE.BufferGeometry();
+const starPos = new Float32Array(3000 * 3);
+for (let i = 0; i < 3000; i++) {
+  starPos[i*3]   = (Math.random()-0.5)*800;
+  starPos[i*3+1] = Math.random()*100 + 10;
+  starPos[i*3+2] = Math.random()*-500;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.6 });
+scene.add(new THREE.Points(starGeo, starMat));
+
+// — Atmospheric fog planes —
+function makeHazePlane(z, opacity) {
+  const geo = new THREE.PlaneGeometry(200, 20);
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0x1a0840,
+    transparent: true,
+    opacity,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(0, 8, z);
+  m.rotation.x = -Math.PI / 6;
+  scene.add(m);
+}
+for (let z = -20; z > -220; z -= 25) makeHazePlane(z, 0.03 + Math.random()*0.04);
+
+// — Road lane lines —
+for (let z = -5; z > -230; z -= 15) {
+  const geo = new THREE.PlaneGeometry(0.3, 8);
+  const mat = new THREE.MeshBasicMaterial({ color: 0xffcc00, transparent:true, opacity:0.4 });
+  const m = new THREE.Mesh(geo, mat);
+  m.rotation.x = -Math.PI/2;
+  m.position.set(-2, -0.95, z);
+  scene.add(m);
+  const m2 = m.clone();
+  m2.position.set(2, -0.95, z);
+  scene.add(m2);
+}
+
+// — Distant city skyline (silhouette) —
+for (let i = 0; i < 40; i++) {
+  const h = Math.random()*60 + 20;
+  const w = Math.random()*5 + 3;
+  const geo = new THREE.BoxGeometry(w, h, 1);
+  const mat = new THREE.MeshBasicMaterial({ color: 0x03020f });
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set((Math.random()-0.5)*200, h/2-1, -260 + Math.random()*30);
+  scene.add(m);
+}
+
+// ══════════════════════════════════════════════
+// LIGHTING — realistic night city
+// ══════════════════════════════════════════════
+
+// Very dim blue ambient — moonlight
+const ambientLight = new THREE.AmbientLight(0x1a2540, 0.5);
+scene.add(ambientLight);
+
+// Moon — cool blue-white directional
+const moonLight = new THREE.DirectionalLight(0x8098d0, 0.45);
+moonLight.position.set(-20, 80, 60);
+scene.add(moonLight);
+
+// Sky dome colour — deep navy gradient hemisphere
+const hemiLight = new THREE.HemisphereLight(
+  0x0a1228,  // sky: dark blue
+  0x1a1008,  // ground: very dark warm (reflected light from city)
+  0.6
+);
+scene.add(hemiLight);
+
+// Coloured accent lights along the camera path (neon sign spill)
+const pathLights = [
+  { pos: [-8, 5, -40],  color: 0xb478ff, intensity: 3.5, dist: 50 },
+  { pos: [10, 4, -80],  color: 0x4af0ff, intensity: 3.0, dist: 50 },
+  { pos: [-6, 6, -130], color: 0xff4488, intensity: 2.5, dist: 45 },
+  { pos: [4,  3, -175], color: 0x4ade80, intensity: 3.0, dist: 50 },
+  { pos: [0,  4, -220], color: 0x64dcff, intensity: 3.5, dist: 50 },
+];
+pathLights.forEach(({ pos, color, intensity, dist }) => {
+  const l = new THREE.PointLight(color, intensity, dist);
+  l.position.set(...pos);
+  scene.add(l);
+});
+
+// Camera headlight — soft white like car headlights
+const headlight = new THREE.PointLight(0xd0ddf0, 2.0, 30);
+scene.add(headlight);
+
+// ══════════════════════════════════════════════
+// SCENE MARKERS — floating rings at key points
+// ══════════════════════════════════════════════
+const markerColors = [0xb478ff, 0x64dcff, 0x4ade80, 0xfbbf24, 0xf472b6];
+const markerZPos  = [-40, -80, -130, -175, -220];
+markerZPos.forEach((z, i) => {
+  const geo = new THREE.TorusGeometry(4, 0.06, 8, 64);
+  const mat = new THREE.MeshStandardMaterial({
+    color: markerColors[i],
+    emissive: new THREE.Color(markerColors[i]),
+    emissiveIntensity: 2,
+  });
+  const torus = new THREE.Mesh(geo, mat);
+  torus.position.set(0, 2, z);
+  torus.rotation.x = Math.PI / 2;
+  torus.userData.baseY = 2;
+  torus.userData.speed = 0.3 + i * 0.1;
+  scene.add(torus);
+});
+
+// ══════════════════════════════════════════════
+// SCROLL & CAMERA ANIMATION
+// ══════════════════════════════════════════════
+let scrollProgress = 0;
+let smoothProgress = 0;
+let camPos = new THREE.Vector3();
+let camTarget = new THREE.Vector3();
+let camTargetSmooth = new THREE.Vector3();
+
+window.addEventListener('scroll', () => {
+  const maxScroll = document.getElementById('scroll-container').scrollHeight - window.innerHeight;
+  scrollProgress = Math.min(window.scrollY / maxScroll, 1);
+}, { passive: true });
+
+// ══════════════════════════════════════════════
+// PANEL VISIBILITY SYSTEM
+// ══════════════════════════════════════════════
+const panels = [
+  { el: document.getElementById('panel-intro'),    from: 0,    to: 0.13 },
+  { el: document.getElementById('panel-story'),    from: 0.14, to: 0.27 },
+  { el: document.getElementById('panel-exp'),      from: 0.28, to: 0.44 },
+  { el: document.getElementById('panel-projects'), from: 0.45, to: 0.61 },
+  { el: document.getElementById('panel-skills'),   from: 0.62, to: 0.78 },
+  { el: document.getElementById('panel-contact'),  from: 0.82, to: 1.00 },
+];
+
+const sectionLabels = [
+  { el: document.getElementById('lbl-intro'),  from: 0,    to: 0.13 },
+  { el: document.getElementById('lbl-story'),  from: 0.14, to: 0.27 },
+  { el: document.getElementById('lbl-exp'),    from: 0.28, to: 0.44 },
+  { el: document.getElementById('lbl-proj'),   from: 0.45, to: 0.61 },
+  { el: document.getElementById('lbl-skills'), from: 0.62, to: 0.78 },
+];
+
+const ambient = document.getElementById('ambient');
+const ambientColors = [
+  { from: 0,    to: 0.15, color: 'rgba(80,20,180,0.06)' },
+  { from: 0.15, to: 0.30, color: 'rgba(20,80,180,0.06)' },
+  { from: 0.30, to: 0.50, color: 'rgba(20,180,80,0.05)' },
+  { from: 0.50, to: 0.65, color: 'rgba(180,80,20,0.05)' },
+  { from: 0.65, to: 0.82, color: 'rgba(180,20,120,0.06)' },
+  { from: 0.82, to: 1.00, color: 'rgba(60,180,255,0.07)' },
+];
+
+function updatePanels(prog) {
+  panels.forEach(({ el, from, to }) => {
+    const visible = prog >= from && prog <= to;
+    const wasVisible = el.classList.contains('show');
+    if (visible && !wasVisible) {
+      el.classList.remove('hide');
+      el.classList.add('show');
+    } else if (!visible && wasVisible) {
+      el.classList.remove('show');
+      el.classList.add('hide');
+      setTimeout(() => el.classList.remove('hide'), 900);
+    }
+  });
+
+  sectionLabels.forEach(({ el, from, to }) => {
+    el.style.opacity = (prog >= from && prog <= to) ? '1' : '0';
+  });
+
+  // Progress bar
+  const pf = document.getElementById('progress-fill');
+  const pd = document.getElementById('prog-dot');
+  pf.style.height = (prog * 100) + '%';
+  pd.style.top = (prog * 100) + '%';
+  pd.style.opacity = '1';
+
+  // Ambient color
+  const ac = ambientColors.find(a => prog >= a.from && prog <= a.to);
+  if (ac) {
+    ambient.style.background = ac.color;
+    ambient.style.opacity = '1';
+  }
+
+  // Scene fog color shift
+  const t = prog;
+  scene.fog.color.setRGB(
+    0.01 + t * 0.02,
+    0.00 + t * 0.01,
+    0.06 + t * 0.04
+  );
+
+  // Scroll hint
+  if (prog > 0.02) document.getElementById('scroll-hint').classList.add('gone');
+}
+
+// ══════════════════════════════════════════════
+// CURSOR
+// ══════════════════════════════════════════════
+const cur  = document.getElementById('cur');
+const curT = document.getElementById('cur-trail');
+let mx = 0, my = 0, tx = 0, ty = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cur.style.transform = `translate(${mx-8}px,${my-8}px)`;
+});
+(function animCur() {
+  tx += (mx - tx) * 0.12;
+  ty += (my - ty) * 0.12;
+  curT.style.transform = `translate(${tx-3}px,${ty-3}px)`;
+  requestAnimationFrame(animCur);
+})();
+
+// ══════════════════════════════════════════════
+// RESIZE
+// ══════════════════════════════════════════════
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ══════════════════════════════════════════════
+// LOADING SIMULATION
+// ══════════════════════════════════════════════
+const loaderBar = document.getElementById('loader-bar');
+const loaderPct = document.getElementById('loader-pct');
+const loader    = document.getElementById('loader');
+const logo      = document.getElementById('logo');
+
+let loadPct = 0;
+const loadInterval = setInterval(() => {
+  loadPct += Math.random() * 8 + 3;
+  if (loadPct >= 100) {
+    loadPct = 100;
+    clearInterval(loadInterval);
+    setTimeout(() => {
+      loader.classList.add('done');
+      logo.style.opacity = '1';
+      // Show intro panel
+      document.getElementById('panel-intro').classList.add('show');
+    }, 400);
+  }
+  loaderBar.style.width = loadPct + '%';
+  loaderPct.textContent = Math.floor(loadPct) + '%';
+}, 60);
+
+// ══════════════════════════════════════════════
+// MAIN RENDER LOOP
+// ══════════════════════════════════════════════
+const clock = new THREE.Clock();
+const tempV3 = new THREE.Vector3();
+
+function tick() {
+  requestAnimationFrame(tick);
+  const dt = clock.getDelta();
+  const t  = clock.getElapsedTime();
+
+  // Smooth scroll progress — buttery lerp
+  smoothProgress += (scrollProgress - smoothProgress) * 0.055;
+
+  // Camera path position
+  cameraPath.getPoint(Math.max(0,Math.min(1,smoothProgress)), camPos);
+  camera.position.lerp(camPos, 0.08);
+
+  // Camera look-at
+  lookatPath.getPoint(Math.min(smoothProgress + 0.02, 1), tempV3);
+  camTargetSmooth.lerp(tempV3, 0.07);
+  camera.lookAt(camTargetSmooth);
+
+  // Subtle sway
+  camera.position.x += Math.sin(t * 0.3) * 0.08;
+  camera.position.y += Math.cos(t * 0.2) * 0.04;
+
+  // Headlight follows camera
+  headlight.position.copy(camera.position);
+
+  // Animate particles (falling rain)
+  const pos = particles.geometry.attributes.position;
+  for (let i = 0; i < particleCount; i++) {
+    pos.array[i*3+1] -= pVel[i];
+    if (pos.array[i*3+1] < -2) {
+      pos.array[i*3+1] = 30 + Math.random() * 10;
+    }
+  }
+  pos.needsUpdate = true;
+  particles.rotation.y = t * 0.001;
+
+  // Animate torus rings
+  scene.children.forEach(obj => {
+    if (obj.isMesh && obj.geometry.type === 'TorusGeometry') {
+      obj.rotation.z = t * (obj.userData.speed || 0.3);
+      obj.position.y = (obj.userData.baseY || 2) + Math.sin(t * 0.8) * 0.3;
+    }
+    // Blink aviation lights on rooftops
+    if (obj.isLight && obj.userData.isBlinkLight) {
+      obj.intensity = 0.5 + 0.5 * Math.round(Math.sin(t * 1.4 + obj.userData.blinkPhase));
+    }
+  });
+
+  // Grid pulse — subtle
+  gridHelper.material.opacity = 0.22 + Math.sin(t * 0.4) * 0.08;
+
+  // Update panels
+  updatePanels(smoothProgress);
+
+  renderer.render(scene, camera);
+}
+tick();
+
+// ══════════════════════════════════════════════
+// KEYBOARD SCROLL
+// ══════════════════════════════════════════════
+window.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') window.scrollBy({ top: 500, behavior: 'smooth' });
+  if (e.key === 'ArrowUp')   window.scrollBy({ top: -500, behavior: 'smooth' });
+});
+
+// ══════════════════════════════════════════════
+// CURSOR HOVER (desktop only)
+// ══════════════════════════════════════════════
+if (!isMobile) {
+  document.querySelectorAll('a,button,.skill-pill,.proj-card,.mob-link').forEach(el => {
+    el.addEventListener('mouseenter', () => cur.classList.add('hover'));
+    el.addEventListener('mouseleave', () => cur.classList.remove('hover'));
+  });
+}
+
+// ══════════════════════════════════════════════
+// MOBILE NAV
+// ══════════════════════════════════════════════
+const hamburger  = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobile-menu');
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('open');
+  mobileMenu.classList.toggle('open');
+});
+
+const sectionScrollTargets = {
+  'panel-intro':    0.06,
+  'panel-story':    0.20,
+  'panel-exp':      0.36,
+  'panel-projects': 0.53,
+  'panel-skills':   0.70,
+  'panel-contact':  0.91,
+};
+document.querySelectorAll('.mob-link').forEach(link => {
+  link.addEventListener('click', () => {
+    const key   = link.dataset.section;
+    const pct   = sectionScrollTargets[key] || 0;
+    const maxSc = document.getElementById('scroll-container').scrollHeight - window.innerHeight;
+    window.scrollTo({ top: pct * maxSc, behavior: 'smooth' });
+    hamburger.classList.remove('open');
+    mobileMenu.classList.remove('open');
+  });
+});
+
+// ══════════════════════════════════════════════
+// MOBILE SCROLL ENGINE
+// ══════════════════════════════════════════════
+if (isMobile) {
+
+  // ── A) Premium vertical virtual scroll ────────────────────────
+  // We intercept ALL touch on the page and drive window.scrollY
+  // ourselves with full physics: inertia, rubber-band, momentum.
+  let vTouchStartY   = 0;
+  let vTouchLastY    = 0;
+  let vVelocity      = 0;          // px/frame momentum
+  let vIsTracking    = false;
+  let vMomentumRAF   = null;
+  const V_LERP       = 0.08;       // smoothing factor
+  const V_FRICTION   = 0.88;       // momentum decay (lower = stops faster)
+  const V_RUBBER     = 0.35;       // rubber-band resistance factor
+  const PROJ_FROM    = 0.45;       // progress window for projects section
+  const PROJ_TO      = 0.61;
+
+  // ── B) Horizontal project swipe state ──────────────────────────
+  const projGrid      = document.getElementById('proj-grid');
+  const projCards     = projGrid ? Array.from(projGrid.querySelectorAll('.proj-card')) : [];
+  const CARD_COUNT    = projCards.length;
+  let   hCurrent      = 0;         // virtual px position (left edge of strip)
+  let   hTarget       = 0;
+  let   hVelocity     = 0;
+  let   hActiveIndex  = 0;
+  let   hTouchStartX  = 0;
+  let   hTouchLastX   = 0;
+  let   hIsDragging   = false;
+  let   inProjSection = false;
+
+  // Build dot indicators
+  const dotsWrap  = document.getElementById('proj-dots');
+  const swipeHint = document.getElementById('swipe-hint');
+  const dots = projCards.map((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'proj-dot-ind' + (i === 0 ? ' active' : '');
+    dotsWrap && dotsWrap.appendChild(d);
+    return d;
+  });
+
+  function getCardWidth() {
+    return projCards[0] ? projCards[0].offsetWidth + 12 : window.innerWidth * 0.78 + 12; // card + gap
+  }
+  function getMaxHScroll() {
+    return Math.max(0, (CARD_COUNT - 1) * getCardWidth());
+  }
+  function snapToCard(idx) {
+    hActiveIndex = Math.max(0, Math.min(CARD_COUNT - 1, idx));
+    hTarget = hActiveIndex * getCardWidth();
+    dots.forEach((d, i) => d.classList.toggle('active', i === hActiveIndex));
+  }
+  function applyHTransform(px) {
+    if (projGrid) projGrid.style.transform = `translateX(${-px}px)`;
+  }
+
+  // ── C) Utility — clamp with rubber-band ────────────────────────
+  function rubberClamp(val, min, max, factor) {
+    if (val < min) return min + (val - min) * factor;
+    if (val > max) return max + (val - max) * factor;
+    return val;
+  }
+
+  // ── D) Touch start ─────────────────────────────────────────────
+  document.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    vTouchStartY = vTouchLastY = t.clientY;
+    hTouchStartX = hTouchLastX = t.clientX;
+    vVelocity   = 0;
+    hVelocity   = 0;
+    hIsDragging = false;
+    vIsTracking = true;
+    if (vMomentumRAF) { cancelAnimationFrame(vMomentumRAF); vMomentumRAF = null; }
+    // Detect if we are inside the projects section
+    inProjSection = (scrollProgress >= PROJ_FROM && scrollProgress <= PROJ_TO);
+  }, { passive: true });
+
+  // ── E) Touch move ──────────────────────────────────────────────
+  document.addEventListener('touchmove', e => {
+    if (!vIsTracking) return;
+    const t      = e.touches[0];
+    const dx     = hTouchLastX - t.clientX;   // positive = swipe left
+    const dy     = vTouchLastY - t.clientY;   // positive = scroll down
+    const absDx  = Math.abs(dx);
+    const absDy  = Math.abs(dy);
+
+    // Determine dominant axis on first significant movement
+    if (!hIsDragging && inProjSection && absDx > absDy && absDx > 4) {
+      hIsDragging = true;
+      if (swipeHint) swipeHint.classList.add('gone');
+    }
+
+    if (hIsDragging && inProjSection) {
+      // Horizontal project drag
+      const raw = hTarget + dx;
+      hTarget   = rubberClamp(raw, 0, getMaxHScroll(), V_RUBBER);
+      hVelocity = dx;
+      hTouchLastX = t.clientX;
+      // Apply immediately for no-lag feel
+      applyHTransform(rubberClamp(hCurrent + dx, -50, getMaxHScroll() + 50, 0.3));
+    } else if (!hIsDragging) {
+      // Vertical page scroll
+      const maxScroll = document.getElementById('scroll-container').scrollHeight - window.innerHeight;
+      const raw = window.scrollY + dy;
+      // Rubber-band at top/bottom
+      const clamped = Math.max(0, Math.min(maxScroll, raw));
+      window.scrollTo(0, clamped);
+      vVelocity = dy * 0.9;  // dampen slightly
+      vTouchLastY = t.clientY;
+    }
+
+    hTouchLastX = t.clientX;
+    vTouchLastY = t.clientY;
+  }, { passive: true });
+
+  // ── F) Touch end — momentum & snap ─────────────────────────────
+  document.addEventListener('touchend', () => {
+    vIsTracking = false;
+
+    if (hIsDragging && inProjSection) {
+      // Snap to nearest card based on velocity direction
+      const cardW  = getCardWidth();
+      const rawIdx = hTarget / cardW;
+      let   snapIdx;
+      if (hVelocity > 2)       snapIdx = Math.ceil(rawIdx);
+      else if (hVelocity < -2) snapIdx = Math.floor(rawIdx);
+      else                     snapIdx = Math.round(rawIdx);
+      snapToCard(snapIdx);
+      hIsDragging = false;
+      hVelocity   = 0;
+      return;
+    }
+
+    // Vertical momentum
+    if (Math.abs(vVelocity) > 0.5) {
+      const maxScroll = document.getElementById('scroll-container').scrollHeight - window.innerHeight;
+      function momentumStep() {
+        vVelocity *= V_FRICTION;
+        if (Math.abs(vVelocity) < 0.4) { vVelocity = 0; return; }
+        const next = Math.max(0, Math.min(maxScroll, window.scrollY + vVelocity));
+        window.scrollTo(0, next);
+        vMomentumRAF = requestAnimationFrame(momentumStep);
+      }
+      vMomentumRAF = requestAnimationFrame(momentumStep);
+    }
+  }, { passive: true });
+
+  // ── G) Animation loop — smooth horizontal interpolation ────────
+  function mobileAnimTick() {
+    requestAnimationFrame(mobileAnimTick);
+    // Smooth hCurrent towards hTarget
+    const diff = hTarget - hCurrent;
+    if (Math.abs(diff) > 0.15) {
+      hCurrent += diff * V_LERP;
+      applyHTransform(hCurrent);
+    } else {
+      hCurrent = hTarget;
+      applyHTransform(hCurrent);
+    }
+  }
+  mobileAnimTick();
+
+} // end isMobile
+</script>
+</body>
+</html>
